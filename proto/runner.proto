@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package go_sandbox.v1;
+
+option go_package = "github.com/nirdosh17/go-sandbox";
+
+message RunRequest {
+  string code = 1;
+  string session_id = 2;
+}
+
+message RunResponse {
+  string output = 1;
+  string exec_err = 2;
+  bool is_error = 3;
+  int64 timestamp = 4;
+}
+
+service GoSandboxService {
+  rpc RunCode (RunRequest) returns (stream RunResponse);
+}
