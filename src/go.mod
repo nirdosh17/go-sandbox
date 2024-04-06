@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/kelseyhightower/envconfig v1.4.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

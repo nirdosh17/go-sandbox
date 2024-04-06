@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -16,7 +17,7 @@ import (
 const execTimeoutDuration = time.Second * 60
 
 func (s *Server) RunCode(in *pb.RunRequest, stream pb.GoSandboxService_RunCodeServer) error {
-	s.Logger.Println("RunCode executed with session id", in.SessionId)
+	s.Logger.Printf("RunCode executed with session id: '%v'\n", in.SessionId)
 
 	ctx, cancel := context.WithTimeout(context.Background(), execTimeoutDuration)
 	defer cancel()
@@ -28,8 +29,7 @@ func (s *Server) RunCode(in *pb.RunRequest, stream pb.GoSandboxService_RunCodeSe
 		stream.Send(&pb.RunResponse{Output: "", IsError: true, ExecErr: "server error: failed to save code"})
 		return nil
 	}
-
-	// defer os.Remove(CodeStorageFolder + "/" + codeID)
+	defer os.Remove(CodeStorageFolder + "/" + codeID + ".go")
 
 	var boxId int
 	box, present := s.Sandbox.GetExistingSandbox(in.SessionId)
@@ -41,7 +41,7 @@ func (s *Server) RunCode(in *pb.RunRequest, stream pb.GoSandboxService_RunCodeSe
 		}
 	} else {
 		boxId = box.Id
-		log.Println("existing sandbox", box.Id, "selected for user", in.SessionId)
+		log.Printf("existing sandbox %v assigned for session id: '%v'", box.Id, in.SessionId)
 	}
 
 	// if session id e.g.(user is) is absent, a random sandbox assigned

@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-const SandboxExpiry = 30 * time.Minute
-const LastUsedThreshold = 20 * time.Minute
-const CleanupFrequency = 5 * time.Minute
+const DefaultSandboxExpiry = 30 * time.Minute
+const DefaultInactivityExpirationThreshold = 20 * time.Minute
+const DefaultCleanupFrequency = 5 * time.Minute
 
 type UserSandbox struct {
 	Id        int
@@ -23,6 +23,12 @@ type Sandbox struct {
 	Count           int
 	Reserved        map[string]*UserSandbox
 	AvailableBoxIDs map[int]struct{}
+	SandboxExpiry   time.Duration
+	// frequency to check sandbox expiry and inactivity
+	CleanupFrequency time.Duration
+	// if a sandbox assigned to session is inactive for this threshold,
+	// 		it will be released from the user, cleaned up and made available for other sessions
+	InactivityExpirationThreshold time.Duration
 }
 
 func NewSandbox(count int) *Sandbox {
@@ -37,7 +43,14 @@ func NewSandbox(count int) *Sandbox {
 		}
 	}
 
-	return &Sandbox{Count: count, AvailableBoxIDs: s, Reserved: make(map[string]*UserSandbox)}
+	return &Sandbox{
+		Count:                         count,
+		AvailableBoxIDs:               s,
+		Reserved:                      make(map[string]*UserSandbox),
+		SandboxExpiry:                 DefaultSandboxExpiry,
+		CleanupFrequency:              DefaultCleanupFrequency,
+		InactivityExpirationThreshold: DefaultInactivityExpirationThreshold,
+	}
 }
 
 func (s *Sandbox) AvailableCount() int {
@@ -76,7 +89,7 @@ func (s *Sandbox) Reserve(uid string) (box *UserSandbox, err error) {
 
 		box := &UserSandbox{
 			Id:        selected,
-			ExpiresAt: time.Now().Add(SandboxExpiry),
+			ExpiresAt: time.Now().Add(s.SandboxExpiry),
 			LastUsed:  time.Now(),
 		}
 		s.Reserved[uid] = box
@@ -102,7 +115,7 @@ func (s *Sandbox) deleteBox(boxId int) error {
 }
 
 func (s *Sandbox) InitCleanup() {
-	ticker := time.NewTicker(CleanupFrequency)
+	ticker := time.NewTicker(s.CleanupFrequency)
 	go func() {
 		for {
 			<-ticker.C
@@ -122,7 +135,7 @@ func (s *Sandbox) Cleanup() {
 		}
 
 		expired := box.ExpiresAt.Before(time.Now())
-		thresholdCrossed := box.LastUsed.Add(LastUsedThreshold).Before(time.Now())
+		thresholdCrossed := box.LastUsed.Add(s.InactivityExpirationThreshold).Before(time.Now())
 		if expired || thresholdCrossed {
 			err := s.deleteBox(box.Id)
 			if err != nil {

@@ -23,7 +23,7 @@ build: generate ## build docker image
 
 run: ## runs sandbox as a gRPC service
 	@echo "running $(SERVICE_NAME)"
-	# isolate needs access to create/modify cgroups for sandboxing which requires privileged access
+# isolate needs access to create/modify cgroups for sandboxing which requires privileged access
 	@docker run --privileged --rm --name $(SERVICE_NAME) -p $(SERVICE_PORT):$(SERVICE_PORT) $(SERVICE_NAME)
 
 help:

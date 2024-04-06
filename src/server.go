@@ -6,15 +6,24 @@ import (
 	"os"
 	"time"
 
+	"github.com/kelseyhightower/envconfig"
 	pb "github.com/nirdosh17/go-sandbox/proto/lib/go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 )
 
-var serviceAddr string = "0.0.0.0:" + os.Getenv("SERVICE_PORT")
-
-var totalSandbox = 10
+type ServiceConfig struct {
+	ServicePort          string        `required:"true" split_words:"true"`
+	CodeCleanupFrequency time.Duration `default:"2h" split_words:"true"`
+	// this is just a safety measure.
+	// by default code is deleted when request is precessed
+	// if a code is older than this threshold, it will be deleted
+	CodeCleanupAge          time.Duration `default:"2h" split_words:"true"`
+	SandboxCount            int           `default:"10" split_words:"true"`
+	SandboxExpiry           time.Duration `default:"30m" split_words:"true"`
+	SandboxCleanupFrequency time.Duration `default:"5m" split_words:"true"`
+}
 
 type Server struct {
 	pb.GoSandboxServiceServer
@@ -22,19 +31,25 @@ type Server struct {
 	Logger  *log.Logger
 }
 
-const codeCleanupInterval = 2 * time.Hour
-
 func main() {
-	ticker := time.NewTicker(codeCleanupInterval)
+	var sc ServiceConfig
+	err := envconfig.Process("", &sc)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	log.Printf("service config: %+v\n", sc)
+
+	ticker := time.NewTicker(sc.CodeCleanupFrequency)
 	defer ticker.Stop()
 
 	go func() {
 		for {
 			<-ticker.C
-			CleanOldCode()
+			CleanOldCode(sc.CodeCleanupAge)
 		}
 	}()
 
+	var serviceAddr string = "0.0.0.0:" + sc.ServicePort
 	lis, err := net.Listen("tcp", serviceAddr)
 	if err != nil {
 		log.Fatalf("failed to listen on %v: %v\n", serviceAddr, err)
@@ -56,8 +71,8 @@ func main() {
 		opts = append(opts, grpc.Creds(creds))
 	}
 
-	sandbox := NewSandbox(totalSandbox)
-	log.Println("total sandbox:", totalSandbox)
+	sandbox := NewSandbox(sc.SandboxCount)
+	log.Println("total sandbox:", sc.SandboxCount)
 	sandbox.InitCleanup()
 
 	s := grpc.NewServer(opts...)
