@@ -5,7 +5,7 @@ RUN apt install wget tar gzip git -y
 
 RUN apt install build-essential libcap-dev pkg-config libsystemd-dev -y
 RUN wget -P /tmp https://github.com/ioi/isolate/archive/master.tar.gz && tar -xzvf /tmp/master.tar.gz -C / > /dev/null
-RUN make -C /isolate-master isolate
+RUN make -C /isolate-master isolate && rm /tmp/master.tar.gz
 ENV PATH="/isolate-master:$PATH"
 
 COPY ./configs/isolate_default.cf /usr/local/etc/isolate
@@ -23,7 +23,7 @@ ENV GOROOT=/usr/local/go
 ENV GOPATH=/root/go
 ENV PATH=${GOROOT}/bin:${GOPATH}/bin:${PATH}
 
-WORKDIR /app
+WORKDIR /sandbox
 ARG SERVICE_PORT
 ENV SERVICE_PORT ${SERVICE_PORT}
 
