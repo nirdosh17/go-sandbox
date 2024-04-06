@@ -12,7 +12,7 @@ var (
 	ErrInternalServer error = errors.New("INTERNAL_SERVER_ERROR")
 )
 
-const CodeStorageFolder string = "code"
+const CodeStorageFolder string = "/sandbox/code"
 
 // handle errors with multiple lines like below:
 //

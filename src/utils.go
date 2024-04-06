@@ -18,7 +18,7 @@ func WriteToTempFile(b []byte) (string, error) {
 
 	// using nano second to avoid filename collision in highly concurrent requests
 	id := fmt.Sprintf("%v", time.Now().UnixNano())
-	err := os.WriteFile(codeFile(id), []byte(unscaped), 0777)
+	err := os.WriteFile(codeFilename(id), []byte(unscaped), 0777)
 
 	if err != nil && errors.Is(err, os.ErrNotExist) {
 		// may be the folder absent. so trying to create it
@@ -29,12 +29,12 @@ func WriteToTempFile(b []byte) (string, error) {
 		}
 		log.Println("created folder:", CodeStorageFolder)
 		// second attempt
-		err = os.WriteFile(codeFile(id), []byte(unscaped), 0777)
+		err = os.WriteFile(codeFilename(id), []byte(unscaped), 0777)
 	}
 
 	return id, err
 }
 
-func codeFile(id string) string {
-	return fmt.Sprintf("%v/%v.go", CodeStorageFolder, id)
+func codeFilename(timestamp string) string {
+	return fmt.Sprintf("%v/%v.go", CodeStorageFolder, timestamp)
 }

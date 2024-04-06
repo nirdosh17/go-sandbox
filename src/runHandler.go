@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -30,8 +29,7 @@ func (s *Server) RunCode(in *pb.RunRequest, stream pb.GoSandboxService_RunCodeSe
 		return nil
 	}
 
-	fname := fmt.Sprintf("code/%v.go", codeID)
-	defer os.Remove(fname)
+	// defer os.Remove(CodeStorageFolder + "/" + codeID)
 
 	var boxId int
 	box, present := s.Sandbox.GetExistingSandbox(in.SessionId)
@@ -57,8 +55,10 @@ func (s *Server) RunCode(in *pb.RunRequest, stream pb.GoSandboxService_RunCodeSe
 	cmd := exec.CommandContext(ctx,
 		"isolate",
 		fmt.Sprintf("--box-id=%v", boxId),
-		// -f, --fsize=<size>	Max size (in KB) of files that can be created
-		"--dir=/app/code",
+		// max size (in KB) of files that can be created
+		// -f, --fsize=<size>
+		// makes directory visible in the sandbox
+		fmt.Sprintf("--dir=%v", CodeStorageFolder),
 		// give read write access to the go cache dir as it needs to be cleaned
 		"--dir=/root/.cache/go-build:rw",
 		// if sandbox is busy, wait instead of returning error right away
@@ -82,7 +82,7 @@ func (s *Server) RunCode(in *pb.RunRequest, stream pb.GoSandboxService_RunCodeSe
 		"--",
 		"/usr/local/go/bin/go",
 		"run",
-		fmt.Sprintf("/app/code/%v.go", codeID),
+		fmt.Sprintf("%v/%v.go", CodeStorageFolder, codeID),
 	)
 
 	cmd.WaitDelay = execTimeoutDuration
