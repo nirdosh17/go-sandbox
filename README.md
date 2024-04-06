@@ -1,8 +1,8 @@
 # Go Sandbox Service
 
-A containerized service which exposes gRPC server streaming endpoint for running a arbitrary Go code in a sandbox.
+A containerized service that exposes a gRPC server streaming endpoint for running an arbitrary Go code in a sandbox.
 
-The code is run inside multiple sandboxes using [isolate](https://github.com/ioi/isolate).
+The arbitrary code runs inside multiple sandboxes using [isolate](https://github.com/ioi/isolate).
 
 <img src="https://github.com/nirdosh17/go-sandbox/assets/5920689/d71453d4-6843-42cf-a09e-23d668f6e72d" width="600" alt="sandbox arch" />
 
@@ -24,7 +24,7 @@ The code is run inside multiple sandboxes using [isolate](https://github.com/ioi
 
     **Request sample:**
 
-    `session_id` can be used to bind a sandbox to a session e.g for authenticated users. If not provided, each execution will be assigned to a random sandbox.
+    `session_id` can be used to bind a sandbox to a session(execution), e.g for authenticated users. If not provided, the code will run in random sandboxes.
 
     ```json
     {
