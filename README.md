@@ -1,7 +1,11 @@
 # Go Sandbox Service
-Containerized service which expose gRPC endpoint to run arbitrary Go code.
 
-The code is run inside sandbox using [isolate](https://github.com/ioi/isolate) package.
+A containerized service which exposes gRPC server streaming endpoint for running a arbitrary Go code in a sandbox.
+
+The code is run inside multiple sandboxes using [isolate](https://github.com/ioi/isolate).
+
+<img src="https://github.com/nirdosh17/go-sandbox/assets/5920689/d71453d4-6843-42cf-a09e-23d668f6e72d" width="600" alt="sandbox arch" />
+
 
 ## Running locally
 1. **Build image**
@@ -15,8 +19,19 @@ The code is run inside sandbox using [isolate](https://github.com/ioi/isolate) p
     ```
 3. **Make RPC call to execute arbitrary code**
 
-    You get live output without need to wait for the code to finish executing.
+    You get real-time output from the executing code through the streaming endpoint, mirroring local execution.
     <video src="https://github.com/nirdosh17/go-sandbox/assets/5920689/cd67a4a3-ef32-43fa-bd33-969c34abc124" width="600" alt="sandbox api call demo" />
+
+    **Request sample:**
+
+    `session_id` can be used to bind a sandbox to a session e.g for authenticated users. If not provided, each execution will be assigned to a random sandbox.
+
+    ```json
+    {
+      "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n)\n\nfunc main() {\n\tfor i := 0; i < 3; i++ {\n\t\ttime.Sleep(time.Second)\n\t\tfmt.Println(\"Hello\", i)\n\t}\n\n}\n",
+      "session_id": "user_1" // optional
+    }
+    ```
 
     **Response Stream:**
 
@@ -30,9 +45,9 @@ The code is run inside sandbox using [isolate](https://github.com/ioi/isolate) p
     }
     ```
     ```json
-    // error from go code
+    // error
     {
-      "output": "/app/main.go:10:8: undefined: time.Slseep",
+      "output": "main.go:10:8: undefined: time.Slseep",
       "exec_err": "",
       "is_error": false,
       "timestamp": "1712416529383"
