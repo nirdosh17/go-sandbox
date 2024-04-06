@@ -19,6 +19,7 @@ var totalSandbox = 10
 type Server struct {
 	pb.GoSandboxServiceServer
 	Sandbox *Sandbox
+	Logger  *log.Logger
 }
 
 const codeCleanupInterval = 2 * time.Hour
@@ -60,7 +61,7 @@ func main() {
 	sandbox.InitCleanup()
 
 	s := grpc.NewServer(opts...)
-	pb.RegisterGoSandboxServiceServer(s, &Server{Sandbox: sandbox})
+	pb.RegisterGoSandboxServiceServer(s, &Server{Sandbox: sandbox, Logger: log.Default()})
 	reflection.Register(s)
 
 	if err = s.Serve(lis); err != nil {

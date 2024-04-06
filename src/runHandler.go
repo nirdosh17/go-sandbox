@@ -17,6 +17,8 @@ import (
 const execTimeoutDuration = time.Second * 60
 
 func (s *Server) RunCode(in *pb.RunRequest, stream pb.GoSandboxService_RunCodeServer) error {
+	s.Logger.Println("RunCode executed with session id", in.SessionId)
+
 	ctx, cancel := context.WithTimeout(context.Background(), execTimeoutDuration)
 	defer cancel()
 
@@ -44,8 +46,8 @@ func (s *Server) RunCode(in *pb.RunRequest, stream pb.GoSandboxService_RunCodeSe
 		log.Println("existing sandbox", box.Id, "selected for user", in.SessionId)
 	}
 
-	// if session id e.g.(user is) is absent, sandbox is randomly assigned for users
-	// this means if user creates a file in one sandbox, then the file may not be present in the next execution
+	// if session id e.g.(user is) is absent, a random sandbox assigned
+	// this means if user creates a file during first execution, then the file may not be present in the next execution as it may run in different sandbox
 	if in.SessionId == "" {
 		defer s.Sandbox.Release(in.SessionId)
 	} else {

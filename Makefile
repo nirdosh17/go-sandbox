@@ -22,7 +22,7 @@ build: generate ## build docker image
 
 run: ## runs sandbox as a gRPC service
 	# isolate needs access to create/modify cgroups for sandboxing which requires privileged access
-	docker run --privileged --rm --name $(SERVICE_NAME)  -p $(SERVICE_PORT):$(SERVICE_PORT) $(SERVICE_NAME)
+	docker run --privileged --rm --name $(SERVICE_NAME) -p $(SERVICE_PORT):$(SERVICE_PORT) $(SERVICE_NAME)
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?\#\# .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?\#\# "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
