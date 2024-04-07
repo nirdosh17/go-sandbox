@@ -6,6 +6,11 @@ The arbitrary code runs inside multiple sandboxes using [isolate](https://github
 
 <img src="https://github.com/nirdosh17/go-sandbox/assets/5920689/d71453d4-6843-42cf-a09e-23d668f6e72d" width="600" alt="sandbox arch" />
 
+**Sandbox:**
+- Multiple sandboxes are created to handle concurrent requests. One sandbox serves one request at a time and keeps other requests waiting till the sandbox is available again.
+- Network calls / File creation(size) are restricted.
+- Files created inside a specific sandbox are not visible to any other sandboxes.
+- Sandboxes are cleaned up periodically.
 
 ## Running locally
 1. **Build image**
@@ -26,7 +31,7 @@ The arbitrary code runs inside multiple sandboxes using [isolate](https://github
 
     `session_id` can be used to bind a sandbox to a session(execution), e.g for authenticated users. If not provided, the code will run in random sandboxes.
 
-    ```json
+    ```jsonc
     {
       "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n)\n\nfunc main() {\n\tfor i := 0; i < 3; i++ {\n\t\ttime.Sleep(time.Second)\n\t\tfmt.Println(\"Hello\", i)\n\t}\n\n}\n",
       "session_id": "user_1" // optional
@@ -35,8 +40,8 @@ The arbitrary code runs inside multiple sandboxes using [isolate](https://github
 
     **Response Stream:**
 
-    ```json
-    // success
+    Success:
+    ```jsonc
     {
       "output": "Hello",            // stdout/stderr from executed Go code
       "exec_err": "",               // server error
@@ -44,8 +49,8 @@ The arbitrary code runs inside multiple sandboxes using [isolate](https://github
       "timestamp": "1712415917223"  // stdout/err timestamp
     }
     ```
+    Error:
     ```json
-    // error
     {
       "output": "main.go:10:8: undefined: time.Slseep",
       "exec_err": "",
