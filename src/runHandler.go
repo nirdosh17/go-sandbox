@@ -55,8 +55,8 @@ func (s *Server) RunCode(in *pb.RunRequest, stream pb.GoSandboxService_RunCodeSe
 	cmd := exec.CommandContext(ctx,
 		"isolate",
 		fmt.Sprintf("--box-id=%v", boxId),
-		// max size (in KB) of files that can be created
-		// -f, --fsize=<size>
+		// max size (in KB) of files that can be created per execution = 5MB
+		"--fsize=5120",
 		// makes directory visible in the sandbox
 		fmt.Sprintf("--dir=%v", CodeStorageFolder),
 		// give read write access to the go cache dir as it needs to be cleaned
