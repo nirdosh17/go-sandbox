@@ -12,6 +12,8 @@ The arbitrary code runs inside multiple sandboxes using [isolate](https://github
 - Files created inside a specific sandbox are not visible to any other sandboxes.
 - Sandboxes are cleaned up periodically.
 
+#### See the full implementation in action: [https://goplayground.dev](https://goplayground.dev)
+
 ## Running locally
 1. **Build image**
     ```bash
